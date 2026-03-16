@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpaceFinder Map</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    #map {
+      width: 100%;
+      height: 100vh;
+    }
+
+    .space-label {
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+      padding: 4px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #222;
+      white-space: nowrap;
+    }
+
+    .leaflet-tooltip.space-label::before {
+      display: none;
+    }
+
+    .space-popup {
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .space-popup b {
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    const map = L.map('map').setView([51.52475, -0.13355], 18);
+
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+    const spaces = [
+      {
+        name: "UCL Main Library Quiet Zone",
+        coords: [51.52463, -0.13374],
+        type: "Deep Focus",
+        subtype: "Silent",
+        availability: "Busy",
+        capacity: "3 of 40 seats free",
+        walk: "5 min walk"
+      },
+      {
+        name: "Wilkins Building Study Room",
+        coords: [51.52458, -0.13360],
+        type: "Deep Focus",
+        subtype: "Silent",
+        availability: "Available",
+        capacity: "7 seats free",
+        walk: "4 min walk"
+      },
+      {
+        name: "Graduate Study Lounge",
+        coords: [51.52469, -0.13342],
+        type: "Deep Focus",
+        subtype: "Silent",
+        availability: "Available",
+        capacity: "8 seats free",
+        walk: "5 min walk"
+      },
+      {
+        name: "UCL Hub Open Study",
+        coords: [51.52478, -0.13398],
+        type: "Open Study",
+        subtype: "Casual",
+        availability: "Full",
+        capacity: "0 seats available",
+        walk: "5 min walk"
+      },
+      {
+        name: "Roberts Building Study Area",
+        coords: [51.52498, -0.13483],
+        type: "Deep Focus",
+        subtype: "Silent",
+        availability: "Available",
+        capacity: "12 seats free",
+        walk: "3 min walk"
+      },
+      {
+        name: "Roberts Room 102",
+        coords: [51.52493, -0.13470],
+        type: "Deep Focus",
+        subtype: "Silent",
+        availability: "Available",
+        capacity: "10 seats free",
+        walk: "3 min walk"
+      },
+      {
+        name: "Engineering Study Room",
+        coords: [51.52486, -0.13460],
+        type: "Team Collab",
+        subtype: "Co-Lab",
+        availability: "Available",
+        capacity: "6 seats free",
+        walk: "4 min walk"
+      },
+      {
+        name: "Student Centre Lounge",
+        coords: [51.52553, -0.13276],
+        type: "Open Study",
+        subtype: "Casual",
+        availability: "Available",
+        capacity: "18 seats free",
+        walk: "4 min walk"
+      },
+      {
+        name: "Student Centre Study Floor",
+        coords: [51.52547, -0.13289],
+        type: "Open Study",
+        subtype: "Casual",
+        availability: "Available",
+        capacity: "24 seats free",
+        walk: "4 min walk"
+      },
+      {
+        name: "Private Call Pod - Student Centre",
+        coords: [51.52540, -0.13270],
+        type: "Private / Nap",
+        subtype: "Rest",
+        availability: "Available",
+        capacity: "2 pods free",
+        walk: "4 min walk"
+      },
+      {
+        name: "Science Library",
+        coords: [51.52321, -0.13202],
+        type: "Deep Focus",
+        subtype: "Silent",
+        availability: "Nearly Full",
+        capacity: "4 of 30 seats free",
+        walk: "6 min walk"
+      },
+      {
+        name: "Malet Street Collaboration Zone",
+        coords: [51.52348, -0.13193],
+        type: "Team Collab",
+        subtype: "Co-Lab",
+        availability: "Busy",
+        capacity: "4 of 20 seats free",
+        walk: "7 min walk"
+      },
+      {
+        name: "Medical Sciences Common Room",
+        coords: [51.52302, -0.13218],
+        type: "Open Study",
+        subtype: "Casual",
+        availability: "Nearly Full",
+        capacity: "2 of 18 seats free",
+        walk: "6 min walk"
+      },
+      {
+        name: "Seminar Room B",
+        coords: [51.52423, -0.13257],
+        type: "Team Collab",
+        subtype: "Co-Lab",
+        availability: "Available",
+        capacity: "9 seats free",
+        walk: "4 min walk"
+      },
+      {
+        name: "Seminar Room C",
+        coords: [51.52414, -0.13241],
+        type: "Team Collab",
+        subtype: "Co-Lab",
+        availability: "Busy",
+        capacity: "2 of 12 seats free",
+        walk: "4 min walk"
+      },
+      {
+        name: "Common Room East",
+        coords: [51.52435, -0.13208],
+        type: "Open Study",
+        subtype: "Casual",
+        availability: "Available",
+        capacity: "15 seats free",
+        walk: "3 min walk"
+      },
+      {
+        name: "Common Room West",
+        coords: [51.52428, -0.13292],
+        type: "Open Study",
+        subtype: "Casual",
+        availability: "Available",
+        capacity: "11 seats free",
+        walk: "4 min walk"
+      },
+      {
+        name: "Institute Lounge",
+        coords: [51.52512, -0.13158],
+        type: "Open Study",
+        subtype: "Casual",
+        availability: "Available",
+        capacity: "13 seats free",
+        walk: "5 min walk"
+      },
+      {
+        name: "Bartlett Studio Space",
+        coords: [51.52484, -0.13116],
+        type: "Team Collab",
+        subtype: "Co-Lab",
+        availability: "Busy",
+        capacity: "3 of 22 seats free",
+        walk: "6 min walk"
+      },
+      {
+        name: "Torrington Place Study Hub",
+        coords: [51.52525, -0.13440],
+        type: "Open Study",
+        subtype: "Casual",
+        availability: "Available",
+        capacity: "21 seats free",
+        walk: "7 min walk"
+      },
+      {
+        name: "Cruciform Study Space",
+        coords: [51.52391, -0.13500],
+        type: "Deep Focus",
+        subtype: "Silent",
+        availability: "Available",
+        capacity: "14 seats free",
+        walk: "4 min walk"
+      },
+      {
+        name: "Quiet Rest Pod - Wilkins",
+        coords: [51.52474, -0.13348],
+        type: "Private / Nap",
+        subtype: "Rest",
+        availability: "Nearly Full",
+        capacity: "1 of 4 pods free",
+        walk: "4 min walk"
+      }
+    ];
+
+    function getColor(status) {
+      if (status === "Available") return "#22c55e";
+      if (status === "Nearly Full") return "#f59e0b";
+      if (status === "Busy") return "#f97316";
+      if (status === "Full") return "#ef4444";
+      return "#3b82f6";
+    }
+
+    const markers = [];
+
+    spaces.forEach(space => {
+      const marker = L.circleMarker(space.coords, {
+        radius: 8,
+        fillColor: getColor(space.availability),
+        color: "#ffffff",
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.95
+      }).addTo(map);
+
+      marker.bindTooltip(space.name, {
+        direction: "top",
+        offset: [0, -10],
+        className: "space-label"
+      });
+
+      marker.bindPopup(`
+        <div class="space-popup">
+          <b>${space.name}</b><br>
+          Type: ${space.type}<br>
+          Category: ${space.subtype}<br>
+          Availability: ${space.availability}<br>
+          Capacity: ${space.capacity}<br>
+          Walking time: ${space.walk}
+        </div>
+      `);
+
+      markers.push(marker);
+    });
+
+    function updateTooltips() {
+      const zoom = map.getZoom();
+
+      markers.forEach(marker => {
+        if (zoom >= 18) {
+          marker.openTooltip();
+        } else {
+          marker.closeTooltip();
+        }
+      });
+    }
+
+    map.on("zoomend", updateTooltips);
+
+    // Run once on initial load
+    updateTooltips();
+  </script>
+</body>
+</html>
