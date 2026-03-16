@@ -299,6 +299,13 @@
         </div>
       `);
 
+      marker.on("click", () => {
+        window.parent.postMessage({
+          type: "marker-click",
+          spaceName: space.name
+        }, "*");
+      });
+
       markers.push(marker);
     });
 
