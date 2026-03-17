@@ -44,10 +44,41 @@
     .space-popup {
       font-size: 13px;
       line-height: 1.4;
+      min-width: 220px;
+    }
+
+    .space-popup-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 4px;
     }
 
     .space-popup b {
       font-size: 14px;
+    }
+
+    .space-popup-info {
+      width: 26px;
+      height: 26px;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #062e63;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex: 0 0 26px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .space-popup-info:hover {
+      background: #f8fafc;
     }
 
     .space-sheet {
@@ -221,33 +252,36 @@
     .map-legend {
       background: rgba(255, 255, 255, 0.96);
       border: 1px solid #d0d7de;
-      border-radius: 12px;
+      border-radius: 999px;
       box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-      padding: 12px 14px;
+      padding: 8px 10px;
       color: #0f172a;
-      font-size: 13px;
-      line-height: 1.4;
+      font-size: 12px;
+      line-height: 1.2;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .map-legend-title {
       font-weight: 700;
-      margin-bottom: 8px;
+      margin: 0;
     }
 
     .map-legend-item {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin: 6px 0;
+      gap: 6px;
       white-space: nowrap;
+      margin: 0;
     }
 
     .map-legend-swatch {
-      width: 12px;
-      height: 12px;
+      width: 10px;
+      height: 10px;
       border-radius: 999px;
       border: 1px solid rgba(0, 0, 0, 0.08);
-      flex: 0 0 12px;
+      flex: 0 0 10px;
     }
 
     @media (max-width: 640px) {
@@ -261,6 +295,11 @@
 
       .space-actions {
         flex-direction: column;
+      }
+
+      .map-legend {
+        flex-wrap: wrap;
+        border-radius: 16px;
       }
     }
   </style>
@@ -592,7 +631,7 @@
 
     function getColor(status) {
       if (status === "Available") return "#22c55e";
-      if (status === "Nearly Full") return "#f59e0b";
+      if (status === "Nearly Full") return "#f97316";
       if (status === "Busy") return "#f97316";
       if (status === "Full") return "#ef4444";
       return "#3b82f6";
@@ -603,7 +642,7 @@
         return { bg: "#dcfce7", text: "#22c55e" };
       }
       if (status === "Nearly Full") {
-        return { bg: "#fef3c7", text: "#d97706" };
+        return { bg: "#ffedd5", text: "#ea580c" };
       }
       if (status === "Busy") {
         return { bg: "#ffedd5", text: "#ea580c" };
@@ -838,7 +877,10 @@
 
       marker.bindPopup(`
         <div class="space-popup">
-          <b>${space.name}</b><br>
+          <div class="space-popup-top">
+            <div><b>${space.name}</b></div>
+            <button class="space-popup-info" type="button" data-space-name="${space.name.replace(/"/g, '&quot;')}" aria-label="More information">i</button>
+          </div>
           Type: ${space.type}<br>
           Category: ${space.subtype}<br>
           Availability: ${space.availability}<br>
@@ -848,8 +890,6 @@
       `);
 
       marker.on("click", () => {
-        openSpaceSheet(space);
-
         window.parent.postMessage({
           type: "marker-click",
           spaceName: space.name
@@ -859,6 +899,21 @@
       marker.addTo(map);
       markers.push(marker);
       markerEntries.push({ space, marker });
+    });
+
+    map.on("popupopen", (event) => {
+      const popupElement = event.popup.getElement();
+      if (!popupElement) return;
+
+      const infoButton = popupElement.querySelector(".space-popup-info");
+      if (!infoButton) return;
+
+      infoButton.addEventListener("click", () => {
+        const spaceName = infoButton.getAttribute("data-space-name");
+        const space = spaces.find(s => s.name === spaceName);
+        if (!space) return;
+        openSpaceSheet(space);
+      });
     });
 
     function showSpaces(filteredSpaces) {
@@ -940,10 +995,6 @@
         <div class="map-legend-item">
           <span class="map-legend-swatch" style="background: #22c55e;"></span>
           <span>Available</span>
-        </div>
-        <div class="map-legend-item">
-          <span class="map-legend-swatch" style="background: #f59e0b;"></span>
-          <span>Nearly Full</span>
         </div>
         <div class="map-legend-item">
           <span class="map-legend-swatch" style="background: #f97316;"></span>
