@@ -9,6 +9,10 @@
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"
+  />
 
   <style>
     body {
@@ -238,6 +242,7 @@
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
   <script>
     const map = L.map('map').setView([51.52475, -0.13355], 18);
@@ -522,6 +527,7 @@
     let userLocationMarker = null;
     let userAccuracyCircle = null;
     let hasCenteredOnUser = false;
+    let routingControl = null;
 
     const spaceSheet = document.getElementById("spaceSheet");
     const sheetName = document.getElementById("sheetName");
@@ -618,19 +624,31 @@
     }
 
     directionsBtn.addEventListener("click", () => {
-      if (!selectedSpace) return;
+      if (!selectedSpace || !userLocation) return;
 
-      const destLat = selectedSpace.coords[0];
-      const destLng = selectedSpace.coords[1];
-      let url = "";
+      const start = L.latLng(userLocation.lat, userLocation.lng);
+      const end = L.latLng(selectedSpace.coords[0], selectedSpace.coords[1]);
 
-      if (userLocation) {
-        url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${destLat},${destLng}&travelmode=walking`;
-      } else {
-        url = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=walking`;
+      if (routingControl) {
+        map.removeControl(routingControl);
       }
 
-      window.open(url, "_blank");
+      routingControl = L.Routing.control({
+        waypoints: [start, end],
+        routeWhileDragging: false,
+        show: false,
+        addWaypoints: false,
+        draggableWaypoints: false,
+        fitSelectedRoutes: true,
+        createMarker: function() {
+          return null;
+        },
+        lineOptions: {
+          styles: [{ color: "#2563eb", weight: 5, opacity: 0.9 }]
+        }
+      }).addTo(map);
+
+      closeSpaceSheet();
     });
 
     closeSheetBtn.addEventListener("click", closeSpaceSheet);
