@@ -566,6 +566,92 @@
       selectedSpace = null;
     }
 
+    function findMarkerBySpaceName(spaceName) {
+      const entry = markerEntries.find(({ space }) => space.name === spaceName);
+      return entry ? entry.marker : null;
+    }
+
+    function clearRoute() {
+      if (routingControl) {
+        map.removeControl(routingControl);
+        routingControl = null;
+      }
+    }
+
+    function focusSpaceByName(spaceName, options = {}) {
+      const {
+        zoom = 18,
+        openSheet = true,
+        openMarkerPopup = true,
+        animate = true
+      } = options;
+
+      const space = spaces.find(s => s.name === spaceName);
+      if (!space) return;
+
+      showSpaces([space]);
+
+      map.flyTo(space.coords, zoom, {
+        animate,
+        duration: 0.8
+      });
+
+      const marker = findMarkerBySpaceName(space.name);
+
+      if (marker) {
+        setTimeout(() => {
+          if (openMarkerPopup) {
+            marker.openPopup();
+          }
+          if (zoom >= 18) {
+            marker.openTooltip();
+          }
+        }, 350);
+      }
+
+      if (openSheet) {
+        openSpaceSheet(space);
+      }
+    }
+
+    function startRouteToSpaceByName(spaceName) {
+      const space = spaces.find(s => s.name === spaceName);
+      if (!space || !userLocation) return;
+
+      const marker = findMarkerBySpaceName(space.name);
+
+      showSpaces([space]);
+
+      const start = L.latLng(userLocation.lat, userLocation.lng);
+      const end = L.latLng(space.coords[0], space.coords[1]);
+
+      clearRoute();
+
+      routingControl = L.Routing.control({
+        waypoints: [start, end],
+        routeWhileDragging: false,
+        show: false,
+        addWaypoints: false,
+        draggableWaypoints: false,
+        fitSelectedRoutes: true,
+        createMarker: function() {
+          return null;
+        },
+        lineOptions: {
+          styles: [{ color: "#2563eb", weight: 5, opacity: 0.9 }]
+        }
+      }).addTo(map);
+
+      if (marker) {
+        setTimeout(() => {
+          marker.openPopup();
+          marker.openTooltip();
+        }, 350);
+      }
+
+      closeSpaceSheet();
+    }
+
     function updateUserLocation(position) {
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
@@ -744,6 +830,13 @@
 
       const nearest = withDistance.slice(0, 5);
       showSpaces(nearest);
+
+      const bounds = nearest.map(space => space.coords);
+      bounds.push([userLocation.lat, userLocation.lng]);
+
+      if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [40, 40] });
+      }
     }
 
     function updateTooltips() {
@@ -763,11 +856,27 @@
       if (!data || typeof data !== "object") return;
 
       if (data.type === "filter-spaces") {
+        clearRoute();
         filterByCategory(data.category);
       }
 
       if (data.type === "near-me") {
+        clearRoute();
         showNearMe();
+      }
+
+      if (data.type === "focus-space" && data.spaceName) {
+        clearRoute();
+        focusSpaceByName(data.spaceName, {
+          zoom: 18,
+          openSheet: true,
+          openMarkerPopup: true,
+          animate: true
+        });
+      }
+
+      if (data.type === "start-route" && data.spaceName) {
+        startRouteToSpaceByName(data.spaceName);
       }
     });
 
