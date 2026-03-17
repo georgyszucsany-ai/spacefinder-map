@@ -497,6 +497,27 @@
       }
     ];
 
+    const markers = [];
+    const markerEntries = [];
+    let selectedSpace = null;
+    let userLocation = null;
+    let userLocationMarker = null;
+    let userAccuracyCircle = null;
+    let hasCenteredOnUser = false;
+    let routingControl = null;
+
+    const spaceSheet = document.getElementById("spaceSheet");
+    const sheetName = document.getElementById("sheetName");
+    const sheetSubtitle = document.getElementById("sheetSubtitle");
+    const sheetAvailability = document.getElementById("sheetAvailability");
+    const sheetWalk = document.getElementById("sheetWalk");
+    const sheetNoise = document.getElementById("sheetNoise");
+    const sheetCapacity = document.getElementById("sheetCapacity");
+    const sheetBuilding = document.getElementById("sheetBuilding");
+    const sheetDescription = document.getElementById("sheetDescription");
+    const directionsBtn = document.getElementById("directionsBtn");
+    const closeSheetBtn = document.getElementById("closeSheetBtn");
+
     function getColor(status) {
       if (status === "Available") return "#22c55e";
       if (status === "Nearly Full") return "#f59e0b";
@@ -520,26 +541,6 @@
       }
       return { bg: "#dbeafe", text: "#2563eb" };
     }
-
-    const markers = [];
-    let selectedSpace = null;
-    let userLocation = null;
-    let userLocationMarker = null;
-    let userAccuracyCircle = null;
-    let hasCenteredOnUser = false;
-    let routingControl = null;
-
-    const spaceSheet = document.getElementById("spaceSheet");
-    const sheetName = document.getElementById("sheetName");
-    const sheetSubtitle = document.getElementById("sheetSubtitle");
-    const sheetAvailability = document.getElementById("sheetAvailability");
-    const sheetWalk = document.getElementById("sheetWalk");
-    const sheetNoise = document.getElementById("sheetNoise");
-    const sheetCapacity = document.getElementById("sheetCapacity");
-    const sheetBuilding = document.getElementById("sheetBuilding");
-    const sheetDescription = document.getElementById("sheetDescription");
-    const directionsBtn = document.getElementById("directionsBtn");
-    const closeSheetBtn = document.getElementById("closeSheetBtn");
 
     function openSpaceSheet(space) {
       selectedSpace = space;
@@ -661,7 +662,7 @@
         weight: 2,
         opacity: 1,
         fillOpacity: 0.95
-      }).addTo(map);
+      });
 
       marker.bindTooltip(space.name, {
         direction: "top",
@@ -689,20 +690,86 @@
         }, "*");
       });
 
+      marker.addTo(map);
       markers.push(marker);
+      markerEntries.push({ space, marker });
     });
+
+    function showSpaces(filteredSpaces) {
+      markerEntries.forEach(({ marker }) => {
+        if (map.hasLayer(marker)) {
+          map.removeLayer(marker);
+        }
+      });
+
+      const bounds = [];
+
+      markerEntries.forEach(({ space, marker }) => {
+        const shouldShow = filteredSpaces.some(s => s.name === space.name);
+
+        if (shouldShow) {
+          marker.addTo(map);
+          bounds.push(space.coords);
+        }
+      });
+
+      if (bounds.length > 0) {
+        map.fitBounds(bounds, { padding: [40, 40] });
+      }
+
+      updateTooltips();
+    }
+
+    function filterByCategory(category) {
+      if (category === "All") {
+        showSpaces(spaces);
+        return;
+      }
+
+      const filtered = spaces.filter(space => space.type === category);
+      showSpaces(filtered);
+    }
+
+    function showNearMe() {
+      if (!userLocation) return;
+
+      const withDistance = spaces.map(space => {
+        const dx = space.coords[0] - userLocation.lat;
+        const dy = space.coords[1] - userLocation.lng;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        return { ...space, distance };
+      });
+
+      withDistance.sort((a, b) => a.distance - b.distance);
+
+      const nearest = withDistance.slice(0, 5);
+      showSpaces(nearest);
+    }
 
     function updateTooltips() {
       const zoom = map.getZoom();
 
       markers.forEach(marker => {
-        if (zoom >= 18) {
+        if (zoom >= 18 && map.hasLayer(marker)) {
           marker.openTooltip();
         } else {
           marker.closeTooltip();
         }
       });
     }
+
+    window.addEventListener("message", (event) => {
+      const data = event.data;
+      if (!data || typeof data !== "object") return;
+
+      if (data.type === "filter-spaces") {
+        filterByCategory(data.category);
+      }
+
+      if (data.type === "near-me") {
+        showNearMe();
+      }
+    });
 
     map.on("zoomend", updateTooltips);
     updateTooltips();
