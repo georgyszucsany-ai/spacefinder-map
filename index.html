@@ -178,6 +178,78 @@
       border: 2px solid #062e63;
     }
 
+    .custom-pin-icon {
+      background: transparent;
+      border: none;
+    }
+
+    .pin-marker {
+      position: relative;
+      width: 24px;
+      height: 34px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .pin-marker::before {
+      content: "";
+      width: 24px;
+      height: 24px;
+      background: var(--pin-color, #3b82f6);
+      border: 2px solid #ffffff;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .pin-marker::after {
+      content: "";
+      width: 8px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 50%;
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+    }
+
+    .map-legend {
+      background: rgba(255, 255, 255, 0.96);
+      border: 1px solid #d0d7de;
+      border-radius: 12px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+      padding: 12px 14px;
+      color: #0f172a;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .map-legend-title {
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .map-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0;
+      white-space: nowrap;
+    }
+
+    .map-legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      flex: 0 0 12px;
+    }
+
     @media (max-width: 640px) {
       .space-grid {
         grid-template-columns: 1fr;
@@ -542,6 +614,19 @@
       return { bg: "#dbeafe", text: "#2563eb" };
     }
 
+    function getPinIcon(status) {
+      const color = getColor(status);
+
+      return L.divIcon({
+        className: "custom-pin-icon",
+        html: `<div class="pin-marker" style="--pin-color: ${color};"></div>`,
+        iconSize: [24, 34],
+        iconAnchor: [12, 34],
+        popupAnchor: [0, -30],
+        tooltipAnchor: [16, -20]
+      });
+    }
+
     function openSpaceSheet(space) {
       selectedSpace = space;
 
@@ -741,18 +826,13 @@
     closeSheetBtn.addEventListener("click", closeSpaceSheet);
 
     spaces.forEach(space => {
-      const marker = L.circleMarker(space.coords, {
-        radius: 8,
-        fillColor: getColor(space.availability),
-        color: "#ffffff",
-        weight: 2,
-        opacity: 1,
-        fillOpacity: 0.95
+      const marker = L.marker(space.coords, {
+        icon: getPinIcon(space.availability)
       });
 
       marker.bindTooltip(space.name, {
         direction: "top",
-        offset: [0, -10],
+        offset: [0, -28],
         className: "space-label"
       });
 
@@ -850,6 +930,34 @@
         }
       });
     }
+
+    const legend = L.control({ position: "bottomright" });
+
+    legend.onAdd = function() {
+      const div = L.DomUtil.create("div", "map-legend");
+      div.innerHTML = `
+        <div class="map-legend-title">Availability</div>
+        <div class="map-legend-item">
+          <span class="map-legend-swatch" style="background: #22c55e;"></span>
+          <span>Available</span>
+        </div>
+        <div class="map-legend-item">
+          <span class="map-legend-swatch" style="background: #f59e0b;"></span>
+          <span>Nearly Full</span>
+        </div>
+        <div class="map-legend-item">
+          <span class="map-legend-swatch" style="background: #f97316;"></span>
+          <span>Busy</span>
+        </div>
+        <div class="map-legend-item">
+          <span class="map-legend-swatch" style="background: #ef4444;"></span>
+          <span>Full</span>
+        </div>
+      `;
+      return div;
+    };
+
+    legend.addTo(map);
 
     window.addEventListener("message", (event) => {
       const data = event.data;
