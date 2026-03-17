@@ -45,11 +45,197 @@
     .space-popup b {
       font-size: 14px;
     }
+
+    .space-sheet {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 2000;
+      background: #ffffff;
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.18);
+      padding: 20px 20px 24px;
+      transform: translateY(100%);
+      transition: transform 0.25s ease;
+      max-height: 72vh;
+      overflow-y: auto;
+    }
+
+    .space-sheet.open {
+      transform: translateY(0);
+    }
+
+    .space-sheet-handle {
+      width: 48px;
+      height: 5px;
+      border-radius: 999px;
+      background: #d1d5db;
+      margin: 0 auto 16px;
+    }
+
+    .space-sheet-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .space-sheet-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0;
+      line-height: 1.1;
+    }
+
+    .space-sheet-subtitle {
+      margin: 8px 0 0;
+      color: #64748b;
+      font-size: 16px;
+    }
+
+    .space-badge {
+      background: #dcfce7;
+      color: #22c55e;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 700;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .space-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .space-card {
+      background: #f3f4f6;
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .space-card-title {
+      font-size: 14px;
+      color: #0f172a;
+      font-weight: 700;
+      margin: 0 0 4px;
+    }
+
+    .space-card-text {
+      font-size: 14px;
+      color: #64748b;
+      margin: 0;
+    }
+
+    .space-section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 24px 0 12px;
+    }
+
+    .space-description {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #64748b;
+      margin: 0;
+    }
+
+    .space-actions {
+      display: flex;
+      gap: 14px;
+      margin-top: 24px;
+    }
+
+    .space-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 16px 22px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .space-btn-primary {
+      flex: 1;
+      background: #062e63;
+      color: #ffffff;
+    }
+
+    .space-btn-secondary {
+      background: #ffffff;
+      color: #062e63;
+      border: 2px solid #062e63;
+    }
+
+    @media (max-width: 640px) {
+      .space-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .space-sheet-title {
+        font-size: 24px;
+      }
+
+      .space-actions {
+        flex-direction: column;
+      }
+    }
   </style>
 </head>
 
 <body>
   <div id="map"></div>
+
+  <div id="spaceSheet" class="space-sheet">
+    <div class="space-sheet-handle"></div>
+
+    <div class="space-sheet-top">
+      <div>
+        <h2 id="sheetName" class="space-sheet-title">Space name</h2>
+        <p id="sheetSubtitle" class="space-sheet-subtitle">Space type</p>
+      </div>
+      <div id="sheetAvailability" class="space-badge">Available</div>
+    </div>
+
+    <div class="space-grid">
+      <div class="space-card">
+        <p class="space-card-title" id="sheetWalk">4 min walk</p>
+        <p class="space-card-text">From your location</p>
+      </div>
+
+      <div class="space-card">
+        <p class="space-card-title" id="sheetNoise">Silent</p>
+        <p class="space-card-text">Sound level</p>
+      </div>
+
+      <div class="space-card">
+        <p class="space-card-title" id="sheetCapacity">7 seats free</p>
+        <p class="space-card-text">Currently free</p>
+      </div>
+
+      <div class="space-card">
+        <p class="space-card-title" id="sheetBuilding">UCL Campus</p>
+        <p class="space-card-text">Building</p>
+      </div>
+    </div>
+
+    <h3 class="space-section-title">About this space</h3>
+    <p id="sheetDescription" class="space-description">
+      A good place to study.
+    </p>
+
+    <div class="space-actions">
+      <button id="directionsBtn" class="space-btn space-btn-primary">Get Directions</button>
+      <button id="closeSheetBtn" class="space-btn space-btn-secondary">Close</button>
+    </div>
+  </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -69,7 +255,9 @@
         subtype: "Silent",
         availability: "Busy",
         capacity: "3 of 40 seats free",
-        walk: "5 min walk"
+        walk: "5 min walk",
+        building: "Main Library",
+        description: "A silent study zone ideal for deep focus and distraction-free individual work."
       },
       {
         name: "Wilkins Building Study Room",
@@ -78,7 +266,9 @@
         subtype: "Silent",
         availability: "Available",
         capacity: "7 seats free",
-        walk: "4 min walk"
+        walk: "4 min walk",
+        building: "Wilkins Building",
+        description: "A peaceful study room with a quiet atmosphere, ideal for focused solo work."
       },
       {
         name: "Graduate Study Lounge",
@@ -87,7 +277,9 @@
         subtype: "Silent",
         availability: "Available",
         capacity: "8 seats free",
-        walk: "5 min walk"
+        walk: "5 min walk",
+        building: "Graduate Building",
+        description: "A calm lounge space for postgraduate students who need uninterrupted study time."
       },
       {
         name: "UCL Hub Open Study",
@@ -96,7 +288,9 @@
         subtype: "Casual",
         availability: "Full",
         capacity: "0 seats available",
-        walk: "5 min walk"
+        walk: "5 min walk",
+        building: "UCL Hub",
+        description: "An open and social study area suitable for casual work and short study sessions."
       },
       {
         name: "Roberts Building Study Area",
@@ -105,7 +299,9 @@
         subtype: "Silent",
         availability: "Available",
         capacity: "12 seats free",
-        walk: "3 min walk"
+        walk: "3 min walk",
+        building: "Roberts Building",
+        description: "A quiet study space near engineering facilities with a strong focused-work atmosphere."
       },
       {
         name: "Roberts Room 102",
@@ -114,7 +310,9 @@
         subtype: "Silent",
         availability: "Available",
         capacity: "10 seats free",
-        walk: "3 min walk"
+        walk: "3 min walk",
+        building: "Roberts Building",
+        description: "A private-feeling room suited to concentrated study and revision sessions."
       },
       {
         name: "Engineering Study Room",
@@ -123,7 +321,9 @@
         subtype: "Co-Lab",
         availability: "Available",
         capacity: "6 seats free",
-        walk: "4 min walk"
+        walk: "4 min walk",
+        building: "Engineering Building",
+        description: "A collaborative study room designed for small group work, discussion, and project meetings."
       },
       {
         name: "Student Centre Lounge",
@@ -132,7 +332,9 @@
         subtype: "Casual",
         availability: "Available",
         capacity: "18 seats free",
-        walk: "4 min walk"
+        walk: "4 min walk",
+        building: "Student Centre",
+        description: "A comfortable lounge space with flexible seating for casual study and short breaks."
       },
       {
         name: "Student Centre Study Floor",
@@ -141,7 +343,9 @@
         subtype: "Casual",
         availability: "Available",
         capacity: "24 seats free",
-        walk: "4 min walk"
+        walk: "4 min walk",
+        building: "Student Centre",
+        description: "A spacious open-plan study floor with plenty of seating and a productive atmosphere."
       },
       {
         name: "Private Call Pod - Student Centre",
@@ -150,7 +354,9 @@
         subtype: "Rest",
         availability: "Available",
         capacity: "2 pods free",
-        walk: "4 min walk"
+        walk: "4 min walk",
+        building: "Student Centre",
+        description: "A private pod suitable for calls, short rests, or brief moments away from busy study areas."
       },
       {
         name: "Science Library",
@@ -159,7 +365,9 @@
         subtype: "Silent",
         availability: "Nearly Full",
         capacity: "4 of 30 seats free",
-        walk: "6 min walk"
+        walk: "6 min walk",
+        building: "Science Library",
+        description: "A classic silent library environment for concentration, reading, and independent study."
       },
       {
         name: "Malet Street Collaboration Zone",
@@ -168,7 +376,9 @@
         subtype: "Co-Lab",
         availability: "Busy",
         capacity: "4 of 20 seats free",
-        walk: "7 min walk"
+        walk: "7 min walk",
+        building: "Malet Street",
+        description: "A collaboration-focused zone intended for discussion, teamwork, and shared project sessions."
       },
       {
         name: "Medical Sciences Common Room",
@@ -177,7 +387,9 @@
         subtype: "Casual",
         availability: "Nearly Full",
         capacity: "2 of 18 seats free",
-        walk: "6 min walk"
+        walk: "6 min walk",
+        building: "Medical Sciences",
+        description: "A common room with a relaxed atmosphere for lighter study, reading, and breaks."
       },
       {
         name: "Seminar Room B",
@@ -186,7 +398,9 @@
         subtype: "Co-Lab",
         availability: "Available",
         capacity: "9 seats free",
-        walk: "4 min walk"
+        walk: "4 min walk",
+        building: "Seminar Block",
+        description: "A seminar-style room that works well for group study, planning, and presentation practice."
       },
       {
         name: "Seminar Room C",
@@ -195,7 +409,9 @@
         subtype: "Co-Lab",
         availability: "Busy",
         capacity: "2 of 12 seats free",
-        walk: "4 min walk"
+        walk: "4 min walk",
+        building: "Seminar Block",
+        description: "A smaller collaborative room for discussion-based study and meeting with classmates."
       },
       {
         name: "Common Room East",
@@ -204,7 +420,9 @@
         subtype: "Casual",
         availability: "Available",
         capacity: "15 seats free",
-        walk: "3 min walk"
+        walk: "3 min walk",
+        building: "Common Room East",
+        description: "A bright and relaxed shared space suited to casual studying and meeting up between classes."
       },
       {
         name: "Common Room West",
@@ -213,7 +431,9 @@
         subtype: "Casual",
         availability: "Available",
         capacity: "11 seats free",
-        walk: "4 min walk"
+        walk: "4 min walk",
+        building: "Common Room West",
+        description: "A comfortable open study room with easy access and flexible seating."
       },
       {
         name: "Institute Lounge",
@@ -222,7 +442,9 @@
         subtype: "Casual",
         availability: "Available",
         capacity: "13 seats free",
-        walk: "5 min walk"
+        walk: "5 min walk",
+        building: "Institute Building",
+        description: "A laid-back lounge environment appropriate for reading, laptop work, and quiet conversation."
       },
       {
         name: "Bartlett Studio Space",
@@ -231,7 +453,9 @@
         subtype: "Co-Lab",
         availability: "Busy",
         capacity: "3 of 22 seats free",
-        walk: "6 min walk"
+        walk: "6 min walk",
+        building: "Bartlett",
+        description: "A studio-style collaborative environment designed for creative and project-based work."
       },
       {
         name: "Torrington Place Study Hub",
@@ -240,7 +464,9 @@
         subtype: "Casual",
         availability: "Available",
         capacity: "21 seats free",
-        walk: "7 min walk"
+        walk: "7 min walk",
+        building: "Torrington Place",
+        description: "A larger study hub with plenty of seating for independent work in a casual environment."
       },
       {
         name: "Cruciform Study Space",
@@ -249,7 +475,9 @@
         subtype: "Silent",
         availability: "Available",
         capacity: "14 seats free",
-        walk: "4 min walk"
+        walk: "4 min walk",
+        building: "Cruciform Building",
+        description: "A quiet study space with strong focus energy, well suited to reading and revision."
       },
       {
         name: "Quiet Rest Pod - Wilkins",
@@ -258,7 +486,9 @@
         subtype: "Rest",
         availability: "Nearly Full",
         capacity: "1 of 4 pods free",
-        walk: "4 min walk"
+        walk: "4 min walk",
+        building: "Wilkins Building",
+        description: "A quiet private pod for brief rest, decompression, or stepping away from busy study areas."
       }
     ];
 
@@ -270,7 +500,140 @@
       return "#3b82f6";
     }
 
+    function getBadgeColors(status) {
+      if (status === "Available") {
+        return { bg: "#dcfce7", text: "#22c55e" };
+      }
+      if (status === "Nearly Full") {
+        return { bg: "#fef3c7", text: "#d97706" };
+      }
+      if (status === "Busy") {
+        return { bg: "#ffedd5", text: "#ea580c" };
+      }
+      if (status === "Full") {
+        return { bg: "#fee2e2", text: "#dc2626" };
+      }
+      return { bg: "#dbeafe", text: "#2563eb" };
+    }
+
     const markers = [];
+    let selectedSpace = null;
+    let userLocation = null;
+    let userLocationMarker = null;
+    let userAccuracyCircle = null;
+    let hasCenteredOnUser = false;
+
+    const spaceSheet = document.getElementById("spaceSheet");
+    const sheetName = document.getElementById("sheetName");
+    const sheetSubtitle = document.getElementById("sheetSubtitle");
+    const sheetAvailability = document.getElementById("sheetAvailability");
+    const sheetWalk = document.getElementById("sheetWalk");
+    const sheetNoise = document.getElementById("sheetNoise");
+    const sheetCapacity = document.getElementById("sheetCapacity");
+    const sheetBuilding = document.getElementById("sheetBuilding");
+    const sheetDescription = document.getElementById("sheetDescription");
+    const directionsBtn = document.getElementById("directionsBtn");
+    const closeSheetBtn = document.getElementById("closeSheetBtn");
+
+    function openSpaceSheet(space) {
+      selectedSpace = space;
+
+      sheetName.textContent = space.name;
+      sheetSubtitle.textContent = `${space.type} · ${space.subtype}`;
+      sheetAvailability.textContent = space.availability;
+      sheetWalk.textContent = space.walk;
+      sheetNoise.textContent = space.subtype;
+      sheetCapacity.textContent = space.capacity;
+      sheetBuilding.textContent = space.building || "Campus Space";
+      sheetDescription.textContent = space.description || "A good place to study.";
+
+      const badgeColors = getBadgeColors(space.availability);
+      sheetAvailability.style.background = badgeColors.bg;
+      sheetAvailability.style.color = badgeColors.text;
+
+      spaceSheet.classList.add("open");
+    }
+
+    function closeSpaceSheet() {
+      spaceSheet.classList.remove("open");
+      selectedSpace = null;
+    }
+
+    function updateUserLocation(position) {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      const accuracy = position.coords.accuracy || 0;
+
+      userLocation = { lat, lng, accuracy };
+
+      if (!userLocationMarker) {
+        userLocationMarker = L.circleMarker([lat, lng], {
+          radius: 8,
+          fillColor: "#2563eb",
+          color: "#ffffff",
+          weight: 3,
+          opacity: 1,
+          fillOpacity: 1
+        }).addTo(map);
+
+        userLocationMarker.bindPopup("Your location");
+      } else {
+        userLocationMarker.setLatLng([lat, lng]);
+      }
+
+      if (!userAccuracyCircle) {
+        userAccuracyCircle = L.circle([lat, lng], {
+          radius: accuracy,
+          color: "#2563eb",
+          weight: 1,
+          opacity: 0.35,
+          fillColor: "#93c5fd",
+          fillOpacity: 0.2
+        }).addTo(map);
+      } else {
+        userAccuracyCircle.setLatLng([lat, lng]);
+        userAccuracyCircle.setRadius(accuracy);
+      }
+
+      if (!hasCenteredOnUser) {
+        hasCenteredOnUser = true;
+        map.setView([lat, lng], 17);
+      }
+    }
+
+    function handleLocationError() {
+      console.warn("Location access was denied or unavailable.");
+    }
+
+    if (navigator.geolocation) {
+      navigator.geolocation.watchPosition(
+        updateUserLocation,
+        handleLocationError,
+        {
+          enableHighAccuracy: true,
+          maximumAge: 10000,
+          timeout: 15000
+        }
+      );
+    }
+
+    directionsBtn.addEventListener("click", () => {
+      if (!selectedSpace) return;
+
+      const destLat = selectedSpace.coords[0];
+      const destLng = selectedSpace.coords[1];
+      let url = "";
+
+      if (userLocation) {
+        url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${destLat},${destLng}&travelmode=walking`;
+      } else {
+        url = `https://www.google.com/maps/dir/?api=1&destination=${destLat},${destLng}&travelmode=walking`;
+      }
+
+      window.open(url, "_blank");
+    });
+
+    closeSheetBtn.addEventListener("click", closeSpaceSheet);
 
     spaces.forEach(space => {
       const marker = L.circleMarker(space.coords, {
@@ -300,6 +663,8 @@
       `);
 
       marker.on("click", () => {
+        openSpaceSheet(space);
+
         window.parent.postMessage({
           type: "marker-click",
           spaceName: space.name
@@ -322,8 +687,6 @@
     }
 
     map.on("zoomend", updateTooltips);
-
-    // Run once on initial load
     updateTooltips();
   </script>
 </body>
